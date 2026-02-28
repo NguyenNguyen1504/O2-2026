@@ -12,8 +12,16 @@ project/project/target/
 # IntelliJ
 .idea/
 *.iml
+*.iws
 
 # Metals/BSP
 .bsp/
 .metals/
 .scala-build/
+
+
+# Bloop (Build server)
+.bloop/
+
+# OS generated files
+.DS_Store
