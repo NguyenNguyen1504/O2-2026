@@ -1,0 +1,19 @@
+*.class
+*.log
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+# Scala/sbt
+target/
+project/target/
+project/project/target/
+
+# IntelliJ
+.idea/
+*.iml
+
+# Metals/BSP
+.bsp/
+.metals/
+.scala-build/
