@@ -39,7 +39,13 @@ package wordOps
  *
  */
 
-def popCount(w: Int): Int = ???
+def popCount(w: Int): Int =
+  var count = 0
+  var temp = w
+  for i <- 0 until 32 do
+    count += (temp & 1)
+    temp = temp >>> 1
+  count
 
 /*
  * Task 2: Reverse bit positions
@@ -52,7 +58,14 @@ def popCount(w: Int): Int = ???
  *
  */
 
-def reverse(w: Short): Short = ???
+def reverse(w: Short): Short =
+  var wRev = 0
+  for i <- 0 until 16 do
+    val ith = (w >>> i) & 1
+    val ithInNewPos = ith << (15 - i)
+    wRev = wRev | ithInNewPos
+
+  wRev.toShort
 
 /*
  * Task 3: Left rotation
@@ -70,4 +83,7 @@ def reverse(w: Short): Short = ???
  * Note that the value of k can also be negative.
  */
 
-def leftRotate(w: Long, k: Int): Long = ???
+def leftRotate(w: Long, k: Int): Long =
+  val shift = ((k % 64) + 64) % 64
+  if shift == 0 then w
+  else (w << shift) | (w >>> (64-shift))

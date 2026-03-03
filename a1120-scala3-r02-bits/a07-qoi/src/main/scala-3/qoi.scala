@@ -79,8 +79,71 @@ def qoiDecode(bytes: IndexedSeq[Byte]): IndexedSeq[Int] =
   val prevSeenPix = Array.fill(64)(Pixel(0))
   // Put every decoded pixel into this Buffer, we will return it at the end of the function
   val result = scala.collection.mutable.ArrayBuffer[Int]()
+  // Stores the last pixel. Initially: R = G = B = 0, A = 255
+  var lastPixel = Pixel(0xFF)
 
-  ???
+  var cursor = 0
+  val inputLength = bytes.length
+  while cursor < inputLength - 8 do
+    val chunk = uByteToInt(bytes(cursor))
+    chunk match
+      case 0xFE =>
+        val r = uByteToInt(bytes(cursor + 1))
+        val g = uByteToInt(bytes(cursor + 2))
+        val b = uByteToInt(bytes(cursor + 3))
+        val a = lastPixel.rgba(3)
+        lastPixel = Pixel(r,g,b,a)
+        prevSeenPix(qoiIndexHash(r,g,b,a)) = lastPixel
+        result += lastPixel.v
+        cursor += 4
+      case 0xFF =>
+        val r = uByteToInt(bytes(cursor + 1))
+        val g = uByteToInt(bytes(cursor + 2))
+        val b = uByteToInt(bytes(cursor + 3))
+        val a = uByteToInt(bytes(cursor + 4))
+        lastPixel = Pixel(r,g,b,a)
+        prevSeenPix(qoiIndexHash(r,g,b,a)) = lastPixel
+        result += lastPixel.v
+        cursor += 5
+      case _ =>
+        val indicator = uByteToInt(bytes(cursor))
+        cursor += 1
+        indicator >>> 6 match
+          case 0    =>
+            val index = indicator & 0x3F
+            lastPixel = prevSeenPix(index)
+            result += lastPixel.v
+          case 0x1  =>
+            val dr = ((indicator >>> 4) & 0x3) - 0x2
+            val dg = ((indicator >>> 2) & 0x3) - 0x2
+            val db = ( indicator        & 0x3) - 0x2
+            val (or,og,ob,oa) = lastPixel.rgba
+            val r = or + dr
+            val g = og + dg
+            val b = ob + db
+            val a = oa
+            lastPixel = Pixel(r,g,b,a)
+            prevSeenPix(qoiIndexHash(r,g,b,a)) = lastPixel
+            result += lastPixel.v
+          case 0x2  =>
+            val RB = uByteToInt(bytes(cursor))
+            val dg = (indicator & 0x3F) - 0x20
+            cursor += 1
+            val dr_dg = ((RB >>> 4) & 0xF) - 0x8
+            val db_dg = ( RB        & 0xF) - 0x8
+            val (or,og,ob,oa) = lastPixel.rgba
+            val r = or + dg + dr_dg
+            val g = og + dg
+            val b = ob + dg + db_dg
+            val a = oa
+            lastPixel = Pixel(r,g,b,a)
+            prevSeenPix(qoiIndexHash(r,g,b,a)) = lastPixel
+            result += lastPixel.v
+          case 0x3 =>
+            val reps = (indicator & 0x3F) + 0x1
+            for i <- 0 until reps do
+              result += lastPixel.v
+
   // Now we are done, the pixels should be in result.
   // Convert to an indexed sequence and return.
   result.toIndexedSeq

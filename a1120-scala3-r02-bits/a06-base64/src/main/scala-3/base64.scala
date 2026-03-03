@@ -92,7 +92,11 @@ end decode
  *
   Make sure that you take only the least significant 8 bits of each argument P,Q,R into account.
  */
-def to24Bits(p: Int, q: Int, r: Int): Int = ???
+def to24Bits(p: Int, q: Int, r: Int): Int =
+  val p8 = p & 0x000000FF
+  val q8 = q & 0x000000FF
+  val r8 = r & 0x000000FF
+  (p8 << 16) | (q8 << 8) | r8
 
 /*
  * Task 2:
@@ -106,7 +110,14 @@ def to24Bits(p: Int, q: Int, r: Int): Int = ???
  * Int in each case): r(0) == X, r(1) == Y, r(2) == Z, and r(3) == W.
  *
  */
-def to6BitWords(w: Int): IndexedSeq[Int] = ???
+def to6BitWords(w: Int): IndexedSeq[Int] =
+  val mask = 0x3F
+  val X = (w >>> 18) & mask
+  val Y = (w >>> 12) & mask
+  val Z = (w >>> 6)  & mask
+  val W =  w         & mask
+  IndexedSeq(X, Y, Z, W)
+
 
 /*
  * Task 3:
@@ -127,7 +138,15 @@ def to6BitWords(w: Int): IndexedSeq[Int] = ???
 def restrictedEncode(b: IndexedSeq[Byte]): String =
   require(b.length % 3 == 0)
   // ... your solution starts here ...
-  ???
+  val groups = b.grouped(3).toVector
+  val indices = groups.flatMap(group =>
+    val p = group(0).toInt
+    val q = group(1).toInt
+    val r = group(2).toInt
+    to6BitWords(to24Bits(p,q,r))
+  )
+  indices.map(B64(_)).mkString
+
   // ... and ends here ...
 end restrictedEncode
 
@@ -138,5 +157,19 @@ end restrictedEncode
  * a multiple of 3.
  *
  */
-def encode(b: IndexedSeq[Byte]): String = ???
+def encode(b: IndexedSeq[Byte]): String =
+  val leftover = b.length % 3
+  val truncated = b.take(b.length - leftover)
+  val restrictedPart = restrictedEncode(truncated)
+  val leftoverGroups = b.drop(b.length - leftover)
+  val paddedPart = leftover match {
+    case 1 =>
+      val i = to6BitWords(to24Bits(leftoverGroups(0).toInt & 0xFF, 0, 0))
+      "" + B64(i(0)) + B64(i(1)) + "=="
+    case 2 =>
+      val i = to6BitWords(to24Bits(leftoverGroups(0).toInt & 0xFF, leftoverGroups(1) & 0xFF, 0))
+      "" + B64(i(0)) + B64(i(1)) + B64(i(2)) + "="
+    case 0 => ""
+  }
+  restrictedPart + paddedPart
 end encode

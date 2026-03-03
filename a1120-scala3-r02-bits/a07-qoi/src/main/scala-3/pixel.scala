@@ -50,7 +50,11 @@ class Pixel(rgbaInt: Int):
     * @return A tuple where the channels are (R, G, B, A)
     */
   def rgba: (Int, Int, Int, Int) =
-    ???
+    val r = v >>> 24 & 0xFF
+    val g = v >>> 16 & 0xFF
+    val b = v >>> 8  & 0xFF
+    val a = v        & 0xFF
+    (r,g,b,a)
   end rgba
 
   /**

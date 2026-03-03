@@ -65,6 +65,8 @@
 
 package rationalDecompose
 
+import scala.collection.mutable
+
 /*
  * Task:
  * Write a function that computes the decomposition of a given
@@ -83,5 +85,27 @@ package rationalDecompose
 def decompose(p: Int, q: Int, b: Int): (Seq[Int], Seq[Int], Seq[Int]) =
   require(p >= 0 && q > 0 && p < 100000 && q < 100000 && b >= 2 && b <= 100)
   // you may assume p, q, b meet the above requirements
-  ???
+  val intPart = p/q
+  def toBaseB(n: Int): List[Int] =
+    if n < b then List(n)
+    else toBaseB(n/b) :+ (n % b)
+  val intSeq = toBaseB(intPart).toSeq
+  val r = p % q
+  val floatPart = mutable.Buffer[Int]()
+  var seen = Map[Int, Int]()
+  var current_r = r
+  while (current_r != 0 && !seen.contains(current_r)) do
+    seen += (current_r -> floatPart.length)
+    val temp = current_r * b
+    floatPart += temp / q
+    current_r = temp % q
+
+  if current_r == 0 then
+    (intSeq, floatPart.toSeq, Seq(0))
+  else
+    val startingIndex = seen(current_r)
+    (intSeq, floatPart.take(startingIndex).toSeq, floatPart.drop(startingIndex).toSeq)
+
+
+
 end decompose

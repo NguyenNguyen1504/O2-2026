@@ -106,7 +106,15 @@ package parity
  */
 
 def extend(p: Long): Long =
-  ???
+  var count = 0L
+  var temp = p
+  for i <- (0 until 63) do
+    count += (temp & 1)
+    temp = temp >>> 1
+
+  val parityBit = if count % 2 == 0 then 0L else 1L
+  (parityBit << 63) | (p & 0x7FFFFFFFFFFFFFFFL)
+
 end extend
 /*
  * Task 2:
@@ -123,5 +131,5 @@ end extend
  */
 
 def ok(x: Long): Boolean =
-  ???
+  extend(x & 0x7FFFFFFFFFFFFFFFL) == x
 end ok

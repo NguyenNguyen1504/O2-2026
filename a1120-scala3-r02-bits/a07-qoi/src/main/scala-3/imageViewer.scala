@@ -38,7 +38,7 @@ object ImageViewer extends SwingApplication:
   def startup(args: Array[String]): Unit =
     println("Starting the image viewer")
 
-  val imgPath = "a07-qoi/data/"
+  val imgPath = "data/"
   val mediumImgBaseNames = Array(
     "checkerboard",
     "ultra_mango",
